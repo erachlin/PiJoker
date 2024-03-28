@@ -41,6 +41,9 @@ end
 function SMODS.INIT.PiJoker()
     -- Define the localization for the Pi Joker
     G.localization.misc.dictionary.reset = "Reset!"
+    G.localization.misc.dictionary.downgrade = "Downgrade..."
+
+    init_localization()
 
     local localization = {
         j_pi = {
@@ -57,16 +60,6 @@ function SMODS.INIT.PiJoker()
         }
     }
 
--- Update the game's localization with the Pi Joker's data
-
--- updateLocalizationJelly(localization, "Joker")
--- if supported_languages[G.SETTINGS.language] then
---   local joker_localization = assert(loadstring(love.filesystem.read(SMODS.findModByID("JellyUtil").path .. '/localization/' ..G.SETTINGS.language..'/jokers.lua')))()
---   updateLocalizationJelly(joker_localization, "Joker")
--- end
-
-
-    -- SMODS.Joker:new(name, slug, config, spritePos, loc_txt, rarity, cost, unlocked, discovered, blueprint_compat, eternal_compat)
 
 
     local joker = SMODS.Joker:new(
@@ -90,34 +83,8 @@ function SMODS.INIT.PiJoker()
                 if context.cardarea == G.jokers then
 
                     if context.before then end
-                    if context.joker_main then
-                        -- self.ability.pi_index = self.ability.pi_index or 1
-                        -- self.ability.pi_multiplier = self.ability.pi_multiplier or 1
-
-                        -- for k, v in ipairs(context.full_hand) do
-                        --     local card_value = v:get_id()  -- Assuming this gets the card's value
-                        --     local expected_digit = PI_DIGITS[self.ability.extra.pi_index]
-                        --     sendDebugMessage("Card value: ")
-                        --     sendDebugMessage(tostring(card_value))
-                        --     sendDebugMessage(" Expected value: ")
-                        --     sendDebugMessage(tostring(expected_digit))
-                        --     local is_correct_digit = check_and_increment_pi_index(card_value, expected_digit, self.ability.extra)
-                        --     if is_correct_digit then
-                        --         if self.ability.extra.pi_index == #PI_DIGITS then
-                        --             self.ability.extra.pi_index = 1
-                        --         else
-                        --             self.ability.extra.pi_index = self.ability.extra.pi_index + 1
-                        --         end
-                        --         self.ability.extra.current_Xmult = self.ability.extra.current_Xmult + self.ability.extra.Xmult_mod
-                        --     else
-                        -- -- Incorrect digit played, reset index and multiplier
-                        --         --self.ability.extra.pi_index = 1
-                        --         if self.ability.extra.current_Xmult > 1 then
-                        --             self.ability.extra.current_Xmult = self.ability.extra.current_Xmult - self.ability.extra.Xmult_mod
-                        --         end
-
-                        --     end
-                        -- end
+                    if context.joker_main and self.ability.name == "Pi Joker" and not context.repetition then
+                        local upgrade_count = 0
                         for k, v in ipairs(context.full_hand) do  -- Iterate over played_hand instead of full_hand
                             if not table.contains(context.scoring_hand, v) then  -- Check if the card is not in scoring_hand
                                 local card_value = v:get_id()  -- Assuming this gets the card's value
@@ -131,25 +98,33 @@ function SMODS.INIT.PiJoker()
                                         self.ability.extra.pi_index = self.ability.extra.pi_index + 1
                                     end
                                     self.ability.extra.current_Xmult = self.ability.extra.current_Xmult + self.ability.extra.Xmult_mod
+                                    upgrade_count = upgrade_count + 1
                                 else
-                                    -- Incorrect digit played, reset index and multiplier
+                                    -- Incorrect digit played, decrease multiplier
                                     --self.ability.extra.pi_index = 1
                                     if self.ability.extra.current_Xmult > 1 then
                                         self.ability.extra.current_Xmult = self.ability.extra.current_Xmult - self.ability.extra.Xmult_mod
+                                        upgrade_count = upgrade_count - 1
                                     end
                                 end
                             end
                         end
+                        if upgrade_count > 0 then
+                            return {
 
-                        return {
-                            message = localize {
-                                type = 'variable',
-                                key = 'a_xmult',
-                                vars = {  self.ability.extra.current_Xmult, self.ability.extra.pi_index }
-                            },
-                            Xmult_mod = self.ability.extra.current_Xmult,
-                            card = self
-                        }
+                                message = localize('k_upgrade_ex'),
+                                colour = G.C.RED,
+                                Xmult_mod = self.ability.extra.current_Xmult,
+                                card = self
+                            }
+                        elseif upgrade_count < 0 then
+                            return {
+                                message = localize('downgrade'),
+                                colour = G.C.BLUE,
+                                Xmult_mod = self.ability.extra.current_Xmult,
+                                card = self
+                            }
+                        end
 
                     end
                 end
@@ -157,23 +132,23 @@ function SMODS.INIT.PiJoker()
         return ret_val;
     end
 
-    -- SMODS.Jokers.j_pi.calculate = function(self, context)
+    SMODS.Jokers.j_pi.calculate = function(self, context)
 
 
-    --     if SMODS.end_calculate_context(context) then
-    --         if self.ability.extra.current_Xmult > 1 then
-    --             return {
-    --                 message = localize {
-    --                     type = 'variable',
-    --                     key = 'a_xmult',
-    --                     vars = { self.ability.extra.current_Xmult }
-    --                 },
-    --                 Xmult_mod = self.ability.extra.current_Xmult,
-    --                 card = self
-    --             }
-    --         end
-    --     end
-    -- end
+        if SMODS.end_calculate_context(context) then
+            if self.ability.extra.current_Xmult > 1 then
+                return {
+                    message = localize {
+                        type = 'variable',
+                        key = 'a_xmult',
+                        vars = { self.ability.extra.current_Xmult }
+                    },
+                    Xmult_mod = self.ability.extra.current_Xmult,
+                    card = self
+                }
+            end
+        end
+    end
 
     local generate_UIBox_ability_tableref = Card.generate_UIBox_ability_table
     function Card.generate_UIBox_ability_table(self)
