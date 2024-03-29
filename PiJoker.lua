@@ -26,7 +26,7 @@ function check_and_increment_pi_index(card_value, expected_digit, ability_extra)
         is_correct_digit = true
     elseif card_value == 14 and expected_digit == 1 then
         is_correct_digit = true
-    elseif card_value >= 11 and card_value <= 13 and expected_digit == 0 then
+    elseif card_value >= 10 and card_value <= 13 and expected_digit == 0 then
         is_correct_digit = true
     end
 
@@ -52,7 +52,7 @@ function SMODS.INIT.PiJoker()
                 "This Joker gains {X:mult,C:white}X#1# {} Mult",
                 "for every {C:attention}non-scoring played consecutive digit of Pi.",
                 "{C:red}Loses {X:mult,C:white}X#1# {C:inactive} on {C:green}incorrect digit",
-                "{C:purple}Face cards count as 0s, Aces as 1s",
+                "{C:purple}10s & face cards count as 0s, Aces as 1s",
                 "Next five digits of Pi: {C:spectral}#2#",
                 "{C:inactive}(Currently {X:mult,C:white} X#3# {C:inactive}){}",
                 "Art made by {C:green} Grassy"
